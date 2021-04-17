@@ -20,13 +20,10 @@ const char* fragmentShaderSource = "#version 330 core\n"
 	"FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
 	"}\0";
 
-float verticiesTriangle1[] = {
+float verticiesTriangle[] = {
 	-.6f, -.5f, .0f,
 	 .4f, -.5f, .0f,
-	-.6f,  .5f, .0f
-};
-
-float verticiesTriangle2[] = {
+	-.6f,  .5f, .0f,
 	 .6f, -.5f, 0.f,
 	 .6f,  .5f, 0.f,
 	-.4f,  .5f, 0.f
@@ -85,27 +82,16 @@ int main()
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 
-	GLuint VBO1, VBO2;
-	glGenBuffers(1, &VBO1);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO1);
+	GLuint VBO;
+	glGenBuffers(1, &VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-	GLuint VAO1, VAO2;
-	glGenVertexArrays(1, &VAO1);
+	GLuint VAO;
+	glGenVertexArrays(1, &VAO);
 	
-	glBindVertexArray(VAO1);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO1);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(verticiesTriangle1), verticiesTriangle1, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)NULL);
-	glEnableVertexAttribArray(0);
-
-	glGenVertexArrays(1, &VAO2);
-
-	glGenBuffers(1, &VBO2);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO2);
-
-	glBindVertexArray(VAO2);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO2);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(verticiesTriangle2), verticiesTriangle2, GL_STATIC_DRAW);
+	glBindVertexArray(VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(verticiesTriangle), verticiesTriangle, GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)NULL);
 	glEnableVertexAttribArray(0);
 
@@ -119,11 +105,8 @@ int main()
 
 		glUseProgram(shaderProgram);
 
-		glBindVertexArray(VAO1);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
-
-		glBindVertexArray(VAO2);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glBindVertexArray(VAO);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
