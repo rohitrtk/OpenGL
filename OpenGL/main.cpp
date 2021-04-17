@@ -1,5 +1,6 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
 #include <iostream>
 
 constexpr int windowWidth = 800;
@@ -19,22 +20,16 @@ const char* fragmentShaderSource = "#version 330 core\n"
 	"FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
 	"}\0";
 
-float verticiesTriangle[] = {
-	-.5f, -.5f, .0f,
-	 .5f, -.5f, .0f,
-	 .0f,  .5f, .0f
+float verticiesTriangle1[] = {
+	-.6f, -.5f, .0f,
+	 .4f, -.5f, .0f,
+	-.6f,  .5f, .0f
 };
 
-float verticiesRectangle[] = {
-	 .5f,  .5f, .0f,
-	 .5f, -.5f, .0f,
-	-.5f, -.5f, .0f,
-	-.5f,  .5f, .0f
-};
-
-GLuint indiciesRectangle[] = {
-	0, 1, 3,
-	1, 2, 3
+float verticiesTriangle2[] = {
+	 .6f, -.5f, 0.f,
+	 .6f,  .5f, 0.f,
+	-.4f,  .5f, 0.f
 };
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
@@ -62,6 +57,7 @@ int main()
 	}
 
 	glfwMakeContextCurrent(window);
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 		std::cerr << "Failed to initialize GLAD!" << std::endl;
@@ -69,60 +65,51 @@ int main()
 	}
 
 	glViewport(0, 0, windowWidth, windowHeight);
-	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-	// Create VBO
-	GLuint VBO;
-	glGenBuffers(1, &VBO);
-
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(verticiesTriangle), verticiesTriangle, GL_STATIC_DRAW);
-
-	// Create Vertex Shader
-	GLuint vertexShader;
-	vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	// Create vertex shader
+	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
 	glCompileShader(vertexShader);
 
-	// Create Fragment Shader
-	GLuint fragmentShader;
-	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	// Create fragment shader
+	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
 	glCompileShader(fragmentShader);
 
-	// Create and Attach Shader Program
-	GLuint shaderProgram;
-	shaderProgram = glCreateProgram();
+	// Create, attach, and clean up shader program
+	GLuint shaderProgram = glCreateProgram();
 	glAttachShader(shaderProgram, vertexShader);
 	glAttachShader(shaderProgram, fragmentShader);
 	glLinkProgram(shaderProgram);
 
-	glUseProgram(shaderProgram);
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)NULL);
-	glEnableVertexAttribArray(NULL);
+	GLuint VBO1, VBO2;
+	glGenBuffers(1, &VBO1);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO1);
 
-	// Create VAO
-	GLuint VAO;
-	glGenVertexArrays(1, &VAO);
+	GLuint VAO1, VAO2;
+	glGenVertexArrays(1, &VAO1);
 	
-	glBindVertexArray(VAO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(verticiesRectangle), verticiesRectangle, GL_STATIC_DRAW);
-
-	// Create EBO
-	GLuint EBO;
-	glGenBuffers(1, &EBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indiciesRectangle), indiciesRectangle, GL_STATIC_DRAW);
-
+	glBindVertexArray(VAO1);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO1);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(verticiesTriangle1), verticiesTriangle1, GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)NULL);
 	glEnableVertexAttribArray(0);
 
-	// Wireframe
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glGenVertexArrays(1, &VAO2);
+
+	glGenBuffers(1, &VBO2);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO2);
+
+	glBindVertexArray(VAO2);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO2);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(verticiesTriangle2), verticiesTriangle2, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)NULL);
+	glEnableVertexAttribArray(0);
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window);
@@ -131,9 +118,12 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		glUseProgram(shaderProgram);
-		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		glBindVertexArray(0);
+
+		glBindVertexArray(VAO1);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+
+		glBindVertexArray(VAO2);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
