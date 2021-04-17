@@ -20,21 +20,12 @@ const char* fragmentShaderSource = "#version 330 core\n"
 	"}\0";
 
 float verticiesTriangle[] = {
-	-.5f, -.5f, .0f,
-	 .5f, -.5f, .0f,
-	 .0f,  .5f, .0f
-};
-
-float verticiesRectangle[] = {
-	 .5f,  .5f, .0f,
-	 .5f, -.5f, .0f,
-	-.5f, -.5f, .0f,
-	-.5f,  .5f, .0f
-};
-
-GLuint indiciesRectangle[] = {
-	0, 1, 3,
-	1, 2, 3
+	-.6f, -.5f, .0f,
+	 .4f, -.5f, .0f,
+	-.6f,  .5f, .0f,
+	 .6f, -.5f, 0.f,
+	 .6f,  .5f, 0.f,
+	-.4f,  .5f, 0.f
 };
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
@@ -101,22 +92,13 @@ int main()
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)NULL);
-	glEnableVertexAttribArray(NULL);
-
 	// Create VAO
 	GLuint VAO;
 	glGenVertexArrays(1, &VAO);
 	
 	glBindVertexArray(VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(verticiesRectangle), verticiesRectangle, GL_STATIC_DRAW);
-
-	// Create EBO
-	GLuint EBO;
-	glGenBuffers(1, &EBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indiciesRectangle), indiciesRectangle, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(verticiesTriangle), verticiesTriangle, GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)NULL);
 	glEnableVertexAttribArray(0);
@@ -132,8 +114,7 @@ int main()
 
 		glUseProgram(shaderProgram);
 		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		glBindVertexArray(0);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
