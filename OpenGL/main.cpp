@@ -1,11 +1,27 @@
 #include "Shader.h"
 #include <GLFW/glfw3.h>
 
+#define ASSERT(x) if(!(x)) __debugbreak()
+#define GLCall(x) GLClearError(); x; ASSERT(GLLogCall(#x, __FILE__, __LINE__))
+
+static void GLClearError() {
+	while (glGetError() != GL_NO_ERROR);
+}
+
+static bool GLLogCall(const char* function, const char* file, int line) {
+	while (GLenum error = glGetError()) {
+		std::cerr << "OpenGL Error (" << function << ", " 
+			<< file << ", " << line << "): " << error << std::endl;
+		return false;
+	}
+	return true;
+}
+
 constexpr int windowWidth = 800;
 constexpr int windowHeight = 600;
 
-constexpr const char* vertexShaderPath = "shaders/vertexShader.shader";
-constexpr const char* fragmentShaderPath = "shaders/fragmentShader.shader";
+constexpr const char* vertexShaderPath = "shaders/vertexShader.glsl";
+constexpr const char* fragmentShaderPath = "shaders/fragmentShader.glsl";
 
 float verticiesTriangle1[] = {
 	-.6f, -.5f, .0f, 1.f, 0.f, 0.f,
@@ -97,10 +113,14 @@ int main()
 		glClearColor(.2f, .3f, .3f, 1.f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		float offset = .7f;
+
 		shader.use();
+		shader.setFloat("xOffset", 0);
 		glBindVertexArray(VAO1);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
+		shader.setFloat("xOffset", offset);
 		glBindVertexArray(VAO2);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
