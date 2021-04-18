@@ -1,8 +1,7 @@
 #include "Shader.h"
 
 Shader::Shader(const char * vertexPath, const char * fragmentPath) {
-	const char* vertexCode = nullptr;
-	const char* fragmentCode = nullptr;
+	std::string vertexCode, fragmentCode;
 	std::ifstream vShaderFile, fShaderFile;
 
 	vShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
@@ -19,22 +18,25 @@ Shader::Shader(const char * vertexPath, const char * fragmentPath) {
 		vShaderFile.close();
 		fShaderFile.close();
 
-		vertexCode = vShaderStream.str().c_str();
-		fragmentCode = fShaderStream.str().c_str();
+		vertexCode = vShaderStream.str();
+		fragmentCode = fShaderStream.str();
 	}
 	catch (std::ifstream::failure) {
 		std::cerr << "Error reading shader" << std::endl;
 	}
 
+	const char* vShaderCode = vertexCode.c_str();
+	const char* fShaderCode = fragmentCode.c_str();
+
 	GLuint vertex, fragment;
 
 	vertex = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertex, 1, &vertexCode, NULL);
+	glShaderSource(vertex, 1, &vShaderCode, NULL);
 	glCompileShader(vertex);
 	this->checkShaderCompilation(vertex);
 
-	fragment = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(fragment, 1, &fragmentCode, NULL);
+	fragment = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fragment, 1, &fShaderCode, NULL);
 	glCompileShader(fragment);
 	this->checkShaderCompilation(fragment);
 

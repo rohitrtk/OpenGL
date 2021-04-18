@@ -27,8 +27,5 @@ public:
 
 	void checkShaderCompilation(const GLuint& shader);
 	void checkShaderLinking(const GLuint& shader);
-
-private:
-	const int infoLogByteSize = 512;
 };
 
