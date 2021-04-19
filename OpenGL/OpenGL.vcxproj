@@ -168,16 +168,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="glad.c" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="src\glad.c" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\Shader.cpp" />
+    <ClCompile Include="src\TextureLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Shader.h" />
+    <ClInclude Include="src\Shader.h" />
+    <ClInclude Include="src\stb_image.h" />
+    <ClInclude Include="src\TextureLoader.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\fragmentShader.glsl" />
     <None Include="shaders\vertexShader.glsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\duck.jpg" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -4,19 +4,23 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <exception>
 
-Shader::Shader(const char* vertexPath, const char* fragmentPath) {
+Shader::Shader(const char* vertexPath, const char* fragmentPath) 
+{
 	std::string vertexCode, fragmentCode;
 	std::ifstream vShaderFile, fShaderFile;
 
 	vShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 	fShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-
-	try {
+	
+	try 
+	{
 		vShaderFile.open(vertexPath);
 		fShaderFile.open(fragmentPath);
-
+		
 		std::stringstream vShaderStream, fShaderStream;
+
 		vShaderStream << vShaderFile.rdbuf();
 		fShaderStream << fShaderFile.rdbuf();
 
@@ -26,8 +30,8 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath) {
 		vertexCode = vShaderStream.str();
 		fragmentCode = fShaderStream.str();
 	}
-	catch (std::ifstream::failure) {
-		std::cerr << "Error reading shader" << std::endl;
+	catch (std::ifstream::failure& ex) { 
+		std::cerr << ex.what() << std::endl;
 	}
 
 	const char* vShaderCode = vertexCode.c_str();
@@ -55,45 +59,54 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath) {
 	glDeleteShader(fragment);
 }
 
-void Shader::use() {
+void Shader::use() 
+{
 	glUseProgram(this->ID);
 }
 
-void Shader::checkShaderCompilation(const GLuint& shader) {
+void Shader::checkShaderCompilation(const GLuint& shader) 
+{
 	int success;
 	char infoLog[INFO_LOG_SIZE];
 
 	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-	if (!success) {
+	if (!success) 
+	{
 		glGetShaderInfoLog(shader, INFO_LOG_SIZE, NULL, infoLog);
 		std::cerr << "Error, compilation of shader failed!\n" << infoLog << std::endl;
 	}
 }
 
-void Shader::checkShaderLinking(const GLuint& shader) {
+void Shader::checkShaderLinking(const GLuint& shader)
+{
 
 	int success;
 	char infoLog[INFO_LOG_SIZE];
 
 	glGetShaderiv(shader, GL_LINK_STATUS, &success);
-	if (!success) {
+	if (!success) 
+	{
 		glGetShaderInfoLog(shader, INFO_LOG_SIZE, NULL, infoLog);
 		std::cerr << "Error, linking of shader failed!\n" << infoLog << std::endl;
 	}
 }
 
-void Shader::setBool(const std::string& name, bool value) const {
+void Shader::setBool(const std::string& name, bool value) const 
+{
 	glUniform1i(glGetUniformLocation(this->ID, name.c_str()), static_cast<int>(value));
 }
 
-void Shader::setInt(const std::string& name, int value) const {
+void Shader::setInt(const std::string& name, int value) const 
+{
 	glUniform1i(glGetUniformLocation(this->ID, name.c_str()), value);
 }
 
-void Shader::setFloat(const std::string& name, float value) const {
+void Shader::setFloat(const std::string& name, float value) const 
+{
 	glUniform1f(glGetUniformLocation(this->ID, name.c_str()), value);
 }
 
-void Shader::setVec3f(const std::string& name, float x, float y, float z) const {
+void Shader::setVec3f(const std::string& name, float x, float y, float z) const 
+{
 	glUniform3f(glGetUniformLocation(this->ID, name.c_str()), x, y, z);
 }
