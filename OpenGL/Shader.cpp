@@ -1,6 +1,11 @@
 #include "Shader.h"
 
-Shader::Shader(const char * vertexPath, const char * fragmentPath) {
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+
+Shader::Shader(const char* vertexPath, const char* fragmentPath) {
 	std::string vertexCode, fragmentCode;
 	std::ifstream vShaderFile, fShaderFile;
 
@@ -50,13 +55,11 @@ Shader::Shader(const char * vertexPath, const char * fragmentPath) {
 	glDeleteShader(fragment);
 }
 
-void Shader::use()
-{
+void Shader::use() {
 	glUseProgram(this->ID);
 }
 
 void Shader::checkShaderCompilation(const GLuint& shader) {
-
 	int success;
 	char infoLog[INFO_LOG_SIZE];
 
@@ -79,17 +82,18 @@ void Shader::checkShaderLinking(const GLuint& shader) {
 	}
 }
 
-void Shader::setBool(const std::string& name, bool value) const
-{
+void Shader::setBool(const std::string& name, bool value) const {
 	glUniform1i(glGetUniformLocation(this->ID, name.c_str()), static_cast<int>(value));
 }
 
-void Shader::setInt(const std::string& name, int value) const
-{
+void Shader::setInt(const std::string& name, int value) const {
 	glUniform1i(glGetUniformLocation(this->ID, name.c_str()), value);
 }
 
-void Shader::setFloat(const std::string& name, float value) const
-{
+void Shader::setFloat(const std::string& name, float value) const {
 	glUniform1f(glGetUniformLocation(this->ID, name.c_str()), value);
+}
+
+void Shader::setVec3f(const std::string& name, float x, float y, float z) const {
+	glUniform3f(glGetUniformLocation(this->ID, name.c_str()), x, y, z);
 }

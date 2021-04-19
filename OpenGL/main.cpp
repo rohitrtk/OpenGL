@@ -1,6 +1,9 @@
 #include "Shader.h"
 #include <GLFW/glfw3.h>
 
+#include <iostream>
+#include <cmath>
+
 #define ASSERT(x) if(!(x)) __debugbreak()
 #define GLCall(x) GLClearError(); x; ASSERT(GLLogCall(#x, __FILE__, __LINE__))
 
@@ -23,6 +26,10 @@ constexpr int windowHeight = 600;
 constexpr const char* vertexShaderPath = "shaders/vertexShader.glsl";
 constexpr const char* fragmentShaderPath = "shaders/fragmentShader.glsl";
 
+Shader* shader = nullptr;
+GLuint VBO1, VBO2;
+GLuint VAO1, VAO2;
+
 float verticiesTriangle1[] = {
 	-.6f, -.5f, .0f, 1.f, 0.f, 0.f,
 	 .4f, -.5f, .0f, 0.f, 1.f, 0.f,
@@ -43,6 +50,32 @@ void processInput(GLFWwindow* window) {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, true);
 	}
+}
+
+void update(GLFWwindow* window) {
+
+}
+
+void render(GLFWwindow* window, const double deltaTime) {
+	glClearColor(.2f, .3f, .3f, 1.f);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	float positionOffset = .0f;
+	float colourOffset = 0.f;
+
+	shader->use();
+
+	shader->setVec3f("colourOffset", colourOffset, 0, 0);
+
+	shader->setVec3f("positionOffset", positionOffset, 0, 0);
+	glBindVertexArray(VAO1);
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+
+	shader->setVec3f("positionOffset", 0, positionOffset, 0);
+	glBindVertexArray(VAO2);
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+
+	glfwSwapBuffers(window);
 }
 
 int main()
@@ -70,10 +103,7 @@ int main()
 	glViewport(0, 0, windowWidth, windowHeight);
 
 	// Create shaders
-	Shader shader(vertexShaderPath, fragmentShaderPath);
-
-	GLuint VBO1, VBO2;
-	GLuint VAO1, VAO2;
+	shader = new Shader(vertexShaderPath, fragmentShaderPath);
 
 	// VAO and VBO 1
 	glGenVertexArrays(1, &VAO1);
@@ -107,24 +137,43 @@ int main()
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
+	const int fps = 60;
+	const double targetTime = 1.0 / fps;
+	
+	double lastTime = glfwGetTime();
+	double timer = lastTime;
+	double currentTime = 0;
+	double deltaTime = 0;
+	int frames = 0;
+	int updates = 0;
+
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window);
+		
+		// Measure time
+		currentTime = glfwGetTime();
+		deltaTime += (currentTime - lastTime) / targetTime;
+		lastTime = currentTime;
 
-		glClearColor(.2f, .3f, .3f, 1.f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		// Update at 60fps
+		while (deltaTime >= 1.0) {
+			update(window);
+			updates++;
+			deltaTime--;
+		}
 
-		float offset = .7f;
+		// Render as many frames as possible
+		render(window, deltaTime);
+		frames++;
 
-		shader.use();
-		shader.setFloat("xOffset", 0);
-		glBindVertexArray(VAO1);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		// Reset update and frame count after 1 second
+		if (glfwGetTime() - timer > 1.0) {
+			timer++;
+			std::cout << updates << " updates at " << frames << "fps" << std::endl;
+			updates = 0;
+			frames = 0;
+		}
 
-		shader.setFloat("xOffset", offset);
-		glBindVertexArray(VAO2);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
-
-		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 
@@ -132,6 +181,8 @@ int main()
 	glDeleteVertexArrays(1, &VAO2);
 	glDeleteBuffers(1, &VBO1);
 	glDeleteBuffers(1, &VBO2);
+
+	delete shader;
 
 	glfwTerminate();
 
