@@ -4,6 +4,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+#include "TextureLoader.h"
+
 #include <iostream>
 #include <cmath>
 
@@ -47,9 +49,7 @@ float verticiesTriangle2[] = {
 };
 
 constexpr const char* texturePath = "res/duck.jpg";
-int textureWidth, textureHeight, textureNumChannels;
-unsigned char* textureData = stbi_load(texturePath, &textureWidth, &textureHeight, &textureNumChannels, NULL);
-GLuint texture;
+GLuint* texture = nullptr;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
@@ -89,7 +89,7 @@ void render(GLFWwindow* window, const double deltaTime) {
 	shader->setVec3f("colourOffset", colourOffset, 0, 0);
 
 	shader->setVec3f("positionOffset", positionOffset, 0, 0);
-	glBindTexture(GL_TEXTURE_2D, texture);
+	glBindTexture(GL_TEXTURE_2D, *texture);
 	glBindVertexArray(VAO1);
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 
@@ -129,10 +129,10 @@ int main()
 
 	// VAO and VBO 1
 	glGenVertexArrays(1, &VAO1);
-	glGenBuffers(1, &VBO1);
-
 	glBindVertexArray(VAO1);
+
 	
+	glGenBuffers(1, &VBO1);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO1);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(verticiesTriangle1), verticiesTriangle1, GL_STATIC_DRAW);
 	
@@ -164,17 +164,7 @@ int main()
 	glEnableVertexAttribArray(2);
 
 	// Texture Stuff
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, textureWidth, textureHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, textureData);
-	glGenerateMipmap(GL_TEXTURE_2D);
-
-	stbi_image_free(textureData);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	texture = TextureLoader::loadTexture(texturePath);
 
 	const int fps = 60;
 	const double targetTime = 1.0 / fps;
@@ -220,9 +210,9 @@ int main()
 	glDeleteVertexArrays(1, &VAO2);
 	glDeleteBuffers(1, &VBO1);
 	glDeleteBuffers(1, &VBO2);
-	glDeleteTextures(1, &texture);
 
 	delete shader;
+	TextureLoader::unloadTexture(texture);
 
 	glfwTerminate();
 

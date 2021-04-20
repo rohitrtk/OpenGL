@@ -25,8 +25,10 @@ unsigned int* TextureLoader::loadTexture(const char* path)
 	return texture;
 }
 
-void unloadTexture(unsigned int* texture)
+void TextureLoader::unloadTexture(unsigned int* texture)
 {
+	glDeleteTextures(1, texture);
+
 	if (texture != nullptr)
 	{
 		delete texture;
