@@ -6,6 +6,9 @@
 
 #include "TextureLoader.h"
 
+#include "VertexArray.h"
+#include "VertexBuffer.h"
+
 #include <iostream>
 #include <cmath>
 
@@ -32,8 +35,6 @@ constexpr const char* vertexShaderPath = "shaders/vertexShader.glsl";
 constexpr const char* fragmentShaderPath = "shaders/fragmentShader.glsl";
 
 Shader* shader = nullptr;
-GLuint VBO1, VBO2;
-GLuint VAO1, VAO2;
 
 float verticiesTriangle1[] = {
 	// Positions		// Colours			// Texture Coordinates
@@ -50,6 +51,11 @@ float verticiesTriangle2[] = {
 
 constexpr const char* texturePath = "res/duck.jpg";
 GLuint* texture = nullptr;
+
+VertexBuffer* vertexBuffer;
+VertexArray* vertexArray;
+VertexBuffer* vertexBuffer2;
+VertexArray* vertexArray2;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
@@ -87,15 +93,10 @@ void render(GLFWwindow* window, const double deltaTime) {
 	shader->use();
 
 	shader->setVec3f("colourOffset", colourOffset, 0, 0);
-
 	shader->setVec3f("positionOffset", positionOffset, 0, 0);
-	glBindTexture(GL_TEXTURE_2D, *texture);
-	glBindVertexArray(VAO1);
-	glDrawArrays(GL_TRIANGLES, 0, 3);
 
-	shader->setVec3f("positionOffset", 0, positionOffset, 0);
-	glBindVertexArray(VAO2);
-	glDrawArrays(GL_TRIANGLES, 0, 3);
+	vertexArray->render();
+	vertexArray2->render();
 
 	glfwSwapBuffers(window);
 }
@@ -127,44 +128,19 @@ int main()
 	// Create shaders
 	shader = new Shader(vertexShaderPath, fragmentShaderPath);
 
-	// VAO and VBO 1
-	glGenVertexArrays(1, &VAO1);
-	glBindVertexArray(VAO1);
-
-	
-	glGenBuffers(1, &VBO1);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO1);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(verticiesTriangle1), verticiesTriangle1, GL_STATIC_DRAW);
-	
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
-
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-	glEnableVertexAttribArray(2);
-
-	// VAO and VBO 2
-	glGenVertexArrays(1, &VAO2);
-	glGenBuffers(1, &VBO2);
-	
-	glBindVertexArray(VAO2);
-
-	glBindBuffer(GL_ARRAY_BUFFER, VBO2);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(verticiesTriangle2), verticiesTriangle2, GL_STATIC_DRAW);
-	
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
-
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-	glEnableVertexAttribArray(2);
-
-	// Texture Stuff
+	// Load texture
 	texture = TextureLoader::loadTexture(texturePath);
+	
+	// Create vertex buffer
+	vertexBuffer = new VertexBuffer(verticiesTriangle1, sizeof(verticiesTriangle1));
+	vertexArray = new VertexArray();
+	vertexArray->setTexture(texture);
+	vertexArray->setAttributes(*vertexBuffer, {3, 3, 2});
+
+	vertexBuffer2 = new VertexBuffer(verticiesTriangle2, sizeof(verticiesTriangle2));
+	vertexArray2 = new VertexArray();
+	vertexArray2->setTexture(texture);
+	vertexArray2->setAttributes(*vertexBuffer2, { 3, 3, 2 });
 
 	const int fps = 60;
 	const double targetTime = 1.0 / fps;
@@ -206,15 +182,32 @@ int main()
 		glfwPollEvents();
 	}
 
-	glDeleteVertexArrays(1, &VAO1);
-	glDeleteVertexArrays(1, &VAO2);
-	glDeleteBuffers(1, &VBO1);
-	glDeleteBuffers(1, &VBO2);
-
 	delete shader;
 	TextureLoader::unloadTexture(texture);
+	
+	delete vertexArray;
+	delete vertexBuffer;
 
 	glfwTerminate();
 
 	return EXIT_SUCCESS;
 }
+
+/* OLD VAO & VBO CODE FOR REFERENCE
+	glGenVertexArrays(1, &VAO2);
+	glGenBuffers(1, &VBO2);
+
+	glBindVertexArray(VAO2);
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO2);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(verticiesTriangle2), verticiesTriangle2, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	glEnableVertexAttribArray(2);
+*/
