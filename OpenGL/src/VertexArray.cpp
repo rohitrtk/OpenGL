@@ -5,6 +5,7 @@
 #include "VertexBuffer.h"
 
 VertexArray::VertexArray()
+	: ID(0)
 {
 	glGenVertexArrays(1, &(this->ID));
 	glBindVertexArray(this->ID);
@@ -25,24 +26,34 @@ void VertexArray::unbind()
 	glBindVertexArray(0);
 }
 
-void VertexArray::bindTexture()
+void VertexArray::bindTextures()
 {
-	if (this->texture)
+	if (!this->textures.empty())
 	{
-		glBindTexture(GL_TEXTURE_2D, *(this->texture));
+		for(const auto& t : this->textures)
+		{
+			glActiveTexture(std::get<1>(t));
+			glBindTexture(GL_TEXTURE_2D, *(std::get<0>(t)));
+			
+			//glBindTexture(GL_TEXTURE_2D, *(this->textures[0]));
+		}
 	}
 }
 
-void VertexArray::setTexture(unsigned int* texture)
+void VertexArray::addTexture(unsigned int* texture, unsigned int buffer)
 {
-	this->texture = texture;
+	this->textures.emplace_back(std::make_tuple(texture, buffer));
 }
 
 void VertexArray::setAttributes(const VertexBuffer& buffer, const std::vector<int>& attributes)
 {
 	int p = 0;
 	int sob = 0;
-	int verticies = 8;
+	int verticies = 0;
+	for(const auto& v : attributes)
+	{
+		verticies += v;
+	}
 	const int sof = sizeof(float);
 
 	for (unsigned int i = 0; i < attributes.size(); i++)
@@ -58,10 +69,10 @@ void VertexArray::setAttributes(const VertexBuffer& buffer, const std::vector<in
 
 void VertexArray::render()
 {
-	this->bindTexture();
+	this->bindTextures();
 
 	this->bind();
-	glDrawArrays(GL_TRIANGLES, 0, 3);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	this->unbind();
 }
 

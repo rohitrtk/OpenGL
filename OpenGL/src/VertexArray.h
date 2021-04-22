@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <tuple>
 
 class VertexBuffer;
 
@@ -13,17 +14,18 @@ public:
 	void bind();
 	void unbind();
 
-	void bindTexture();
-	void setTexture(unsigned int* texture);
+	void bindTextures();
+	void addTexture(unsigned int* texture, unsigned int buffer);
 
 	void setAttributes(const VertexBuffer& vbo, const std::vector<int>& attributes);
 
 	void render();
 
-	inline unsigned int getID() const { return this->ID; }
-	inline void setID(unsigned int ID) { this->ID = ID; }
+	unsigned int getID() const { return this->ID; }
+	void setID(unsigned int ID) { this->ID = ID; }
 
 private:
 	unsigned int ID;
-	unsigned int* texture;
+	
+	std::vector<std::tuple<unsigned int*, unsigned int>> textures;
 };

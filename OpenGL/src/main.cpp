@@ -4,29 +4,17 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+#include <iostream>
+#include <cmath>
+#include <array>
+
 #include "TextureLoader.h"
 
 #include "VertexArray.h"
 #include "VertexBuffer.h"
+#include "ElementBuffer.h"
 
-#include <iostream>
-#include <cmath>
-
-#define ASSERT(x) if(!(x)) __debugbreak()
-#define GLCall(x) GLClearError(); x; ASSERT(GLLogCall(#x, __FILE__, __LINE__))
-
-static void GLClearError() {
-	while (glGetError() != GL_NO_ERROR);
-}
-
-static bool GLLogCall(const char* function, const char* file, int line) {
-	while (GLenum error = glGetError()) {
-		std::cerr << "OpenGL Error (" << function << ", " 
-			<< file << ", " << line << "): " << error << std::endl;
-		return false;
-	}
-	return true;
-}
+#include "Debug.h"
 
 constexpr int windowWidth = 800;
 constexpr int windowHeight = 600;
@@ -34,8 +22,22 @@ constexpr int windowHeight = 600;
 constexpr const char* vertexShaderPath = "shaders/vertexShader.glsl";
 constexpr const char* fragmentShaderPath = "shaders/fragmentShader.glsl";
 
+constexpr const char* texturePath1 = "res/brick.png";
+constexpr const char* texturePath2 = "res/snoop.png";
+
+unsigned int* textures[2];
 Shader* shader = nullptr;
 
+VertexBuffer* buffer;
+VertexArray* array;
+ElementBuffer* element;
+
+// Keyboard stuff
+bool tPressed = false; // Temporary until I have some sort of keyboard handler
+bool showWireFrame = false;
+
+// Vertex stuff
+/*
 float verticiesTriangle1[] = {
 	// Positions		// Colours			// Texture Coordinates
 	-.6f, -.5f, .0f,	1.f, 0.f, 0.f,		0.f, 0.f,
@@ -48,55 +50,37 @@ float verticiesTriangle2[] = {
 	 .6f,  .5f, 0.f, 0.f, 1.f, 0.f, 1.f, 0.f,
 	-.4f,  .5f, 0.f, 0.f, 0.f, 1.f, .5f, 1.f
 };
+*/
 
-constexpr const char* texturePath = "res/duck.jpg";
-GLuint* texture = nullptr;
+float rectangle[] =
+{	// Positions				// Texture Coordinates
+	 0.5f,  0.5f,  0.0f,		1.0f, 1.0f,	// Top right
+	 0.5f, -0.5f,  0.0f,		1.0f, 0.0f, // Bottom right
+	-0.5f, -0.5f,  0.0f,		0.0f, 0.0f, // Bottom left
+	-0.5f,  0.5f,  0.0f,		0.0f, 1.0f // Top left
+};
 
-VertexBuffer* vertexBuffer;
-VertexArray* vertexArray;
-VertexBuffer* vertexBuffer2;
-VertexArray* vertexArray2;
+unsigned int indicies[] =
+{
+	0, 1, 3, // First triangle
+	1, 2, 3 // Second triangle
+};
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-	glViewport(0, 0, width, height);
-}
-
-bool showWireFrame = false;
-// Temporary until I have some sort of keyboard handler
-bool tPressed = false;
-
-void processInput(GLFWwindow* window) {
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-		glfwSetWindowShouldClose(window, true);
-	}
-
-	if(glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS && !tPressed) {
-		tPressed = true;
-		showWireFrame = !showWireFrame;
-		showWireFrame ? glPolygonMode(GL_FRONT_AND_BACK, GL_LINE) :	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	}
-
-	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_RELEASE && tPressed) {
-		tPressed = false;
-	}
-}
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void processInput(GLFWwindow* window);
 
 void update(GLFWwindow* window) {}
 
-void render(GLFWwindow* window, const double deltaTime) {
+void render(GLFWwindow* window, const double deltaTime)
+{
 	glClearColor(.2f, .3f, .3f, 1.f);
 	glClear(GL_COLOR_BUFFER_BIT);
-
-	float positionOffset = .0f;
-	float colourOffset = 0.f;
-
+	
 	shader->use();
+	shader->setInt("texture0", 0);
+	shader->setInt("texture1", 1);
 
-	shader->setVec3f("colourOffset", colourOffset, 0, 0);
-	shader->setVec3f("positionOffset", positionOffset, 0, 0);
-
-	vertexArray->render();
-	vertexArray2->render();
+	array->render();
 
 	glfwSwapBuffers(window);
 }
@@ -109,7 +93,8 @@ int main()
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	GLFWwindow* window = glfwCreateWindow(windowWidth, windowHeight, "OpenGL", NULL, NULL);
-	if (window == NULL) {
+	if (window == NULL) 
+	{
 		std::cerr << "Failed to create GLFW window!" << std::endl;
 		glfwTerminate();
 		return EXIT_FAILURE;
@@ -118,7 +103,8 @@ int main()
 	glfwMakeContextCurrent(window);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) 
+	{
 		std::cerr << "Failed to initialize GLAD!" << std::endl;
 		return EXIT_FAILURE;
 	}
@@ -128,21 +114,19 @@ int main()
 	// Create shaders
 	shader = new Shader(vertexShaderPath, fragmentShaderPath);
 
-	// Load texture
-	texture = TextureLoader::loadTexture(texturePath);
+	// Load textures
+	textures[0] = TextureLoader::loadTexture(texturePath1);
+	textures[1] = TextureLoader::loadTexture(texturePath2);
+
+	array = new VertexArray();
+	buffer = new VertexBuffer(rectangle, sizeof(rectangle));
+	element = new ElementBuffer(indicies, sizeof(indicies));
 	
-	// Create vertex buffer
-	vertexBuffer = new VertexBuffer(verticiesTriangle1, sizeof(verticiesTriangle1));
-	vertexArray = new VertexArray();
-	vertexArray->setTexture(texture);
-	vertexArray->setAttributes(*vertexBuffer, {3, 3, 2});
-
-	vertexBuffer2 = new VertexBuffer(verticiesTriangle2, sizeof(verticiesTriangle2));
-	vertexArray2 = new VertexArray();
-	vertexArray2->setTexture(texture);
-	vertexArray2->setAttributes(*vertexBuffer2, { 3, 3, 2 });
-
-	const int fps = 60;
+	array->setAttributes(*buffer, { 3, 2 });
+	array->addTexture(textures[0], GL_TEXTURE0);
+	array->addTexture(textures[1], GL_TEXTURE1);
+	
+	const int fps = 60; 
 	const double targetTime = 1.0 / fps;
 	
 	double lastTime = glfwGetTime();
@@ -152,7 +136,8 @@ int main()
 	int frames = 0;
 	int updates = 0;
 
-	while (!glfwWindowShouldClose(window)) {
+	while (!glfwWindowShouldClose(window)) 
+	{
 		processInput(window);
 		
 		// Measure time
@@ -183,14 +168,40 @@ int main()
 	}
 
 	delete shader;
-	TextureLoader::unloadTexture(texture);
-	
-	delete vertexArray;
-	delete vertexBuffer;
+	TextureLoader::unloadTexture(textures[0]);
+
+	delete element;
+	delete buffer;
+	delete array;
 
 	glfwTerminate();
 
 	return EXIT_SUCCESS;
+}
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+	glViewport(0, 0, width, height);
+}
+
+void processInput(GLFWwindow* window) 
+{
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+	{
+		glfwSetWindowShouldClose(window, true);
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS && !tPressed)
+	{
+		tPressed = true;
+		showWireFrame = !showWireFrame;
+		showWireFrame ? glPolygonMode(GL_FRONT_AND_BACK, GL_LINE) : glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_RELEASE && tPressed)
+	{
+		tPressed = false;
+	}
 }
 
 /* OLD VAO & VBO CODE FOR REFERENCE

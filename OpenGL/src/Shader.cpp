@@ -30,7 +30,8 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath)
 		vertexCode = vShaderStream.str();
 		fragmentCode = fShaderStream.str();
 	}
-	catch (std::ifstream::failure& ex) { 
+	catch (std::ifstream::failure& ex) 
+	{ 
 		std::cerr << ex.what() << std::endl;
 	}
 
