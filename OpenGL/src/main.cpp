@@ -8,13 +8,13 @@
 #include <cmath>
 #include <array>
 
+#include "Debug.h"
+
 #include "TextureLoader.h"
 
 #include "VertexArray.h"
 #include "VertexBuffer.h"
 #include "ElementBuffer.h"
-
-#include "Debug.h"
 
 constexpr int windowWidth = 800;
 constexpr int windowHeight = 600;
@@ -23,7 +23,7 @@ constexpr const char* vertexShaderPath = "shaders/vertexShader.glsl";
 constexpr const char* fragmentShaderPath = "shaders/fragmentShader.glsl";
 
 constexpr const char* texturePath1 = "res/brick.png";
-constexpr const char* texturePath2 = "res/snoop.png";
+constexpr const char* texturePath2 = "res/awesome.png";
 
 unsigned int* textures[2];
 Shader* shader = nullptr;
@@ -115,8 +115,8 @@ int main()
 	shader = new Shader(vertexShaderPath, fragmentShaderPath);
 
 	// Load textures
-	textures[0] = TextureLoader::loadTexture(texturePath1);
-	textures[1] = TextureLoader::loadTexture(texturePath2);
+	textures[0] = TextureLoader::loadTexture(texturePath1, false);
+	textures[1] = TextureLoader::loadTexture(texturePath2, true);
 
 	array = new VertexArray();
 	buffer = new VertexBuffer(rectangle, sizeof(rectangle));
@@ -136,6 +136,7 @@ int main()
 	int frames = 0;
 	int updates = 0;
 
+	LOG("Starting main loop.");
 	while (!glfwWindowShouldClose(window)) 
 	{
 		processInput(window);

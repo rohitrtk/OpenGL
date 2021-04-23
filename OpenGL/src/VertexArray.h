@@ -1,9 +1,12 @@
 #pragma once
 
 #include <vector>
-#include <tuple>
+#include <utility>
 
 class VertexBuffer;
+
+constexpr int TEXTURE_INDEX = 0;
+constexpr int TEXTURE_DATA_INDEX = 1;
 
 class VertexArray
 {
@@ -15,7 +18,7 @@ public:
 	void unbind();
 
 	void bindTextures();
-	void addTexture(unsigned int* texture, unsigned int buffer);
+	void addTexture(unsigned int* texture, int index);
 
 	void setAttributes(const VertexBuffer& vbo, const std::vector<int>& attributes);
 
@@ -26,6 +29,6 @@ public:
 
 private:
 	unsigned int ID;
-	
-	std::vector<std::tuple<unsigned int*, unsigned int>> textures;
+
+	std::vector<std::pair<unsigned int*, unsigned int>> textures;
 };

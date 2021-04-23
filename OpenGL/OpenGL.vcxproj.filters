@@ -71,5 +71,11 @@
     <Image Include="res\brick.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="res\snoop.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\awesome.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

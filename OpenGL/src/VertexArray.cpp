@@ -30,19 +30,19 @@ void VertexArray::bindTextures()
 {
 	if (!this->textures.empty())
 	{
-		for(const auto& t : this->textures)
+		for(const auto& texture : this->textures)
 		{
-			glActiveTexture(std::get<1>(t));
-			glBindTexture(GL_TEXTURE_2D, *(std::get<0>(t)));
+			glActiveTexture(texture.second);
+			glBindTexture(GL_TEXTURE_2D, *(texture.first));
 			
 			//glBindTexture(GL_TEXTURE_2D, *(this->textures[0]));
 		}
 	}
 }
 
-void VertexArray::addTexture(unsigned int* texture, unsigned int buffer)
+void VertexArray::addTexture(unsigned int* texture, int index)
 {
-	this->textures.emplace_back(std::make_tuple(texture, buffer));
+	this->textures.emplace_back(std::make_pair(texture, index));
 }
 
 void VertexArray::setAttributes(const VertexBuffer& buffer, const std::vector<int>& attributes)

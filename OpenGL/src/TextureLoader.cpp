@@ -5,7 +5,9 @@
 
 #include <iostream>
 
-unsigned int* TextureLoader::loadTexture(const char* path)
+#include "Debug.h"
+
+unsigned int* TextureLoader::loadTexture(const char* path, bool transparent)
 {
 	unsigned int* texture = new unsigned int;
 	
@@ -23,7 +25,7 @@ unsigned int* TextureLoader::loadTexture(const char* path)
 	unsigned char* data = stbi_load(path, &width, &height, &ncChannels, NULL);
 	if (data) 
 	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, transparent ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);
 	}
 	else
@@ -33,6 +35,8 @@ unsigned int* TextureLoader::loadTexture(const char* path)
 
 	stbi_image_free(data);
 
+	LOG("Successfully loaded image from path " << path);
+	
 	return texture;
 }
 
