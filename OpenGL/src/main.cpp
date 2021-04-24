@@ -89,6 +89,8 @@ void processInput(GLFWwindow* window);
 void update(GLFWwindow* window)
 {
 	// Rotation around z axis
+	translation = glm::mat4(1.0f);
+	//translation = glm::rotate(translation, glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 	translation = glm::rotate(translation, static_cast<float>(glfwGetTime()), glm::vec3(0.0f, 0.0f, 1.0f));
 	//translation = glm::scale(translation, glm::vec3(0.5f, 0.5f, 0.5f));
 }
