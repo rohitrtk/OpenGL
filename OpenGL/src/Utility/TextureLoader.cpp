@@ -5,7 +5,7 @@
 
 #include <iostream>
 
-#include "Debug.h"
+#include "../Debug.h"
 
 unsigned int* TextureLoader::loadTexture(const char* path, bool transparent)
 {

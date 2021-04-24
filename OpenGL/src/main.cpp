@@ -1,15 +1,16 @@
-#include "Shader.h"
+#include "Utility/Shader.h"
 #include <GLFW/glfw3.h>
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include "Utility/stb_image.h"
 
 #include <iostream>
+#include <algorithm>
 #include <cmath>
 
 #include "Debug.h"
 
-#include "TextureLoader.h"
+#include "Utility/TextureLoader.h"
 
 #include "VertexArray.h"
 #include "VertexBuffer.h"
@@ -25,6 +26,8 @@ constexpr const char* texturePath1 = "res/brick.png";
 constexpr const char* texturePath2 = "res/awesome.png";
 
 unsigned int* textures[2];
+float textureAlpha = 0.5f;
+
 Shader* shader = nullptr;
 
 VertexBuffer* buffer;
@@ -32,7 +35,10 @@ VertexArray* array;
 ElementBuffer* element;
 
 // Keyboard stuff
-bool tPressed = false; // Temporary until I have some sort of keyboard handler
+bool tPressed = false;
+bool wPressed = false;
+bool sPressed = false;
+
 bool showWireFrame = false;
 
 // Vertex stuff
@@ -76,8 +82,7 @@ void render(GLFWwindow* window, const double deltaTime)
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	shader->use();
-	shader->setInt("texture0", 0);
-	shader->setInt("texture1", 1);
+	shader->setFloat("alpha", textureAlpha);
 
 	array->render();
 
@@ -201,6 +206,30 @@ void processInput(GLFWwindow* window)
 	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_RELEASE && tPressed)
 	{
 		tPressed = false;
+	}
+
+	if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS && !wPressed)
+	{
+		wPressed = true;
+		textureAlpha = textureAlpha + 0.1f; // std::min<float>(textureAlpha + 0.1f, 1.0f);
+		LOG(textureAlpha);
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_RELEASE && wPressed)
+	{
+		wPressed = false;
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS && !sPressed)
+	{
+		sPressed = true;
+		textureAlpha = textureAlpha - 0.1f; // std::max<float>(textureAlpha - 0.1f, 0.f);
+		LOG(textureAlpha);
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_RELEASE && sPressed)
+	{
+		sPressed = false;
 	}
 }
 
