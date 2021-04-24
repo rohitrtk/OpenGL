@@ -1,5 +1,7 @@
 #include "Shader.h"
 
+#include <glad/glad.h>
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -65,7 +67,7 @@ void Shader::use()
 	glUseProgram(this->ID);
 }
 
-void Shader::checkShaderCompilation(const GLuint& shader) 
+void Shader::checkShaderCompilation(const unsigned int& shader) 
 {
 	int success;
 	char infoLog[INFO_LOG_SIZE];
@@ -78,7 +80,7 @@ void Shader::checkShaderCompilation(const GLuint& shader)
 	}
 }
 
-void Shader::checkShaderLinking(const GLuint& shader)
+void Shader::checkShaderLinking(const unsigned int& shader)
 {
 
 	int success;
@@ -111,3 +113,9 @@ void Shader::setVec3f(const std::string& name, float x, float y, float z) const
 {
 	glUniform3f(glGetUniformLocation(this->ID, name.c_str()), x, y, z);
 }
+
+void Shader::setMat4fv(const std::string& name, const glm::mat4& mat) const
+{
+	glUniformMatrix4fv(glGetUniformLocation(this->ID, name.c_str()), 1, GL_FALSE, glm::value_ptr(mat));
+}
+

@@ -1,6 +1,7 @@
 #pragma once
 
-#include <glad/glad.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <string>
 
@@ -10,7 +11,7 @@ class Shader
 {
 public:
 	// Program ID
-	GLuint ID;
+	unsigned int ID;
 
 	Shader(const char* vertexPath, const char* fragmentPath);
 	
@@ -22,8 +23,9 @@ public:
 	void setInt(const std::string& name, int value) const;
 	void setFloat(const std::string& name, float value) const;
 	void setVec3f(const std::string& name, float x, float y, float z) const;
-
-	void checkShaderCompilation(const GLuint& shader);
-	void checkShaderLinking(const GLuint& shader);
+	void setMat4fv(const std::string& name, const glm::mat4& mat) const;
+	
+	void checkShaderCompilation(const unsigned int& shader);
+	void checkShaderLinking(const unsigned int& shader);
 };
 

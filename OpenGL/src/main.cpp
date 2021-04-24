@@ -1,20 +1,31 @@
-#include "Utility/Shader.h"
+// Required for OpenGL, glad must be included before glfw
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+// OpenGL Math libraries
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+// For loading textures, #define STB_IMAGE_IMPLEMENTATION
+// must be defined.
 #define STB_IMAGE_IMPLEMENTATION
 #include "Utility/stb_image.h"
 
+// STL libraries
 #include <iostream>
 #include <algorithm>
 #include <cmath>
 
-#include "Debug.h"
-
+// My headers
+#include "Utility/Shader.h"
 #include "Utility/TextureLoader.h"
 
 #include "VertexArray.h"
 #include "VertexBuffer.h"
 #include "ElementBuffer.h"
+
+#include "Debug.h"
 
 constexpr int windowWidth = 800;
 constexpr int windowHeight = 600;
@@ -29,6 +40,7 @@ unsigned int* textures[2];
 float textureAlpha = 0.5f;
 
 Shader* shader = nullptr;
+glm::mat4 translation(1.0f);
 
 VertexBuffer* buffer;
 VertexArray* array;
@@ -74,7 +86,12 @@ unsigned int indicies[] =
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
-void update(GLFWwindow* window) {}
+void update(GLFWwindow* window)
+{
+	// Rotation around z axis
+	translation = glm::rotate(translation, static_cast<float>(glfwGetTime()), glm::vec3(0.0f, 0.0f, 1.0f));
+	//translation = glm::scale(translation, glm::vec3(0.5f, 0.5f, 0.5f));
+}
 
 void render(GLFWwindow* window, const double deltaTime)
 {
@@ -83,7 +100,9 @@ void render(GLFWwindow* window, const double deltaTime)
 	
 	shader->use();
 	shader->setFloat("alpha", textureAlpha);
-
+	shader->setVec3f("positionOffset", 0.5f, 0.0f, 0.0f);
+	shader->setMat4fv("transform", translation);
+	
 	array->render();
 
 	glfwSwapBuffers(window);
@@ -114,7 +133,7 @@ int main()
 	}
 
 	glViewport(0, 0, windowWidth, windowHeight);
-
+	
 	// Create shaders
 	shader = new Shader(vertexShaderPath, fragmentShaderPath);
 

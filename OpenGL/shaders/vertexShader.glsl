@@ -7,8 +7,10 @@ out vec2 TexCoord;
 
 uniform vec3 positionOffset;
 
+uniform mat4 transform;
+
 void main()
 {
-    gl_Position = vec4(aPos.x + positionOffset.x, aPos.y + positionOffset.y, aPos.z + positionOffset.z, 1.0);
+    gl_Position = transform * vec4(positionOffset + aPos, 1.0);
 	TexCoord = aTexCoord;
 }
