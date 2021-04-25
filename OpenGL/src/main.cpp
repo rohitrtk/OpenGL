@@ -33,14 +33,15 @@ constexpr int windowHeight = 600;
 constexpr const char* vertexShaderPath = "shaders/vertexShader.glsl";
 constexpr const char* fragmentShaderPath = "shaders/fragmentShader.glsl";
 
-constexpr const char* texturePath1 = "res/brick.png";
+constexpr const char* texturePath1 = "res/pattern.jpg";
 constexpr const char* texturePath2 = "res/awesome.png";
 
 unsigned int* textures[2];
 float textureAlpha = 0.5f;
 
 Shader* shader = nullptr;
-glm::mat4 translation(1.0f);
+glm::mat4 transform(1.0f);
+glm::mat4 transform2(1.0f);
 
 VertexBuffer* buffer;
 VertexArray* array;
@@ -89,10 +90,14 @@ void processInput(GLFWwindow* window);
 void update(GLFWwindow* window)
 {
 	// Rotation around z axis
-	translation = glm::mat4(1.0f);
-	//translation = glm::rotate(translation, glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	translation = glm::rotate(translation, static_cast<float>(glfwGetTime()), glm::vec3(0.0f, 0.0f, 1.0f));
-	//translation = glm::scale(translation, glm::vec3(0.5f, 0.5f, 0.5f));
+	transform = glm::mat4(1.0f);
+	transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
+	transform = glm::rotate(transform, static_cast<float>(glfwGetTime()), glm::vec3(0.0f, 0.0f, 1.0f));
+
+	transform2 = glm::mat4(1.0f);
+	transform2 = glm::translate(transform2, glm::vec3(-0.5f, 0.5f, 0.0f));
+	float scale = static_cast<float>(pow(sin(glfwGetTime()), 2) + 0.1f);
+	transform2 = glm::scale(transform2, glm::vec3(scale));
 }
 
 void render(GLFWwindow* window, const double deltaTime)
@@ -100,13 +105,17 @@ void render(GLFWwindow* window, const double deltaTime)
 	glClearColor(.2f, .3f, .3f, 1.f);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
+	array->bindTextures();
+	
 	shader->use();
 	shader->setFloat("alpha", textureAlpha);
-	shader->setVec3f("positionOffset", 0.5f, 0.0f, 0.0f);
-	shader->setMat4fv("transform", translation);
-	
+	shader->setMat4fv("transform", transform);
+
 	array->render();
 
+	shader->setMat4fv("transform", transform2);
+	array->render();
+	
 	glfwSwapBuffers(window);
 }
 
@@ -135,19 +144,21 @@ int main()
 	}
 
 	glViewport(0, 0, windowWidth, windowHeight);
-	
-	// Create shaders
-	shader = new Shader(vertexShaderPath, fragmentShaderPath);
 
 	// Load textures
 	textures[0] = TextureLoader::loadTexture(texturePath1, false);
 	textures[1] = TextureLoader::loadTexture(texturePath2, true);
 
+	// Create shaders
+	shader = new Shader(vertexShaderPath, fragmentShaderPath);
+	shader->setInt("texture0", 0);
+	shader->setInt("texture1", 1);
+	
 	array = new VertexArray();
 	buffer = new VertexBuffer(rectangle, sizeof(rectangle));
 	element = new ElementBuffer(indicies, sizeof(indicies));
 	
-	array->setAttributes(*buffer, { 3, 2 });
+	array->setAttributes({ 3, 2 });
 	array->addTexture(textures[0], GL_TEXTURE0);
 	array->addTexture(textures[1], GL_TEXTURE1);
 	
@@ -199,7 +210,7 @@ int main()
 	delete element;
 	delete buffer;
 	delete array;
-
+	
 	glfwTerminate();
 
 	return EXIT_SUCCESS;

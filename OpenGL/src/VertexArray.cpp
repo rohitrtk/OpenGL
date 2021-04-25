@@ -34,18 +34,16 @@ void VertexArray::bindTextures()
 		{
 			glActiveTexture(texture.second);
 			glBindTexture(GL_TEXTURE_2D, *(texture.first));
-			
-			//glBindTexture(GL_TEXTURE_2D, *(this->textures[0]));
 		}
 	}
 }
 
-void VertexArray::addTexture(unsigned int* texture, int index)
+void VertexArray::addTexture(unsigned int* texture, int activeTexture)
 {
-	this->textures.emplace_back(std::make_pair(texture, index));
+	this->textures.emplace_back(std::make_pair(texture, activeTexture));
 }
 
-void VertexArray::setAttributes(const VertexBuffer& buffer, const std::vector<int>& attributes)
+void VertexArray::setAttributes(const std::vector<int>& attributes)
 {
 	int p = 0;
 	int sob = 0;

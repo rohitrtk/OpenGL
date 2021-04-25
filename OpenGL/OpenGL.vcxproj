@@ -191,9 +191,8 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\awesome.png" />
-    <Image Include="res\brick.png" />
     <Image Include="res\duck.jpg" />
-    <Image Include="res\snoop.png" />
+    <Image Include="res\pattern.jpg" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

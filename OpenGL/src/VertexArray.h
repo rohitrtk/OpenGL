@@ -3,11 +3,6 @@
 #include <vector>
 #include <utility>
 
-class VertexBuffer;
-
-constexpr int TEXTURE_INDEX = 0;
-constexpr int TEXTURE_DATA_INDEX = 1;
-
 class VertexArray
 {
 public:
@@ -18,9 +13,9 @@ public:
 	void unbind();
 
 	void bindTextures();
-	void addTexture(unsigned int* texture, int index);
+	void addTexture(unsigned int* texture, int activeTexture);
 
-	void setAttributes(const VertexBuffer& vbo, const std::vector<int>& attributes);
+	void setAttributes(const std::vector<int>& attributes);
 
 	void render();
 

@@ -68,13 +68,10 @@
     <Image Include="res\duck.jpg">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="res\brick.png">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\snoop.png">
-      <Filter>Resource Files</Filter>
-    </Image>
     <Image Include="res\awesome.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\pattern.jpg">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
