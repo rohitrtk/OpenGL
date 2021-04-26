@@ -17,20 +17,11 @@ void KeyboardHandler::processInput()
 	
 	for(auto& k : this->keys)
 	{
-		if(glfwGetKey(this->window, k.first) == GLFW_PRESS && !k.second.second)
-		{
-			k.second.first();
-			k.second.second = true;
-		}
-
-		if (glfwGetKey(this->window, k.first) == GLFW_RELEASE && k.second.second)
-		{
-			k.second.second = false;
-		}
+		
 	}
 }
 
-void KeyboardHandler::bindKey(int key, callback function)
+void KeyboardHandler::bindKey(int key, callback keyPressFunction, callback keyReleaseFunction, bool ignorePressRelease)
 {
-	this->keys[key] = std::make_pair(function, false);
+	this->keys[key] = std::make_tuple(keyPressFunction, keyReleaseFunction, false, ignorePressRelease);
 }

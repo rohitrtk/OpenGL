@@ -156,28 +156,36 @@ void bindKeys();
 
 bool showWireFrame = false;
 
-float velocity = 0.75f;
-glm::vec3 cameraPosition(0.0f, 0.0f, 0.0f);
+// Camera stuff
+const glm::vec3 up(0.0f, 1.0f, 0.0f);
+glm::vec3 cameraFront(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraPosition(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraTarget;
+glm::vec3 cameraDirection;
+glm::vec3 cameraRight;
+glm::vec3 cameraUp;
+
+float yaw = 0;
+float pitch = 0;
+bool firstMouse = true;
 
 // Handlers
 void toggleWireframe();
 void increaseAlpha();
 void decreaseAlpha();
-void cameraLeft();
-void cameraRight();
-void cameraUp();
-void cameraDown();
+
+// Mouse stuff
+float lastX = 400;
+float lastY = 300;
 
 // For GLFW
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void mouse_callback(GLFWwindow* window, double mouseX, double mouseY);
 //void processInput(GLFWwindow* window);
 
 void update(GLFWwindow* window)
 {
-	//model = glm::mat4(1.0f);
-	//model = glm::rotate(model, static_cast<float>(glfwGetTime()) * glm::radians(50.f), glm::vec3(0.5f, 1.0f, 0.0f));
-
-	view = glm::translate(view, cameraPosition);
+	view = glm::lookAt(cameraPosition, cameraPosition + cameraFront, up);
 }
 
 void render(GLFWwindow* window, const double deltaTime)
@@ -229,7 +237,10 @@ int main()
 
 	glfwMakeContextCurrent(window);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
+	
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetCursorPosCallback(window, mouse_callback);
+	
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) 
 	{
 		std::cerr << "Failed to initialize GLAD!" << std::endl;
@@ -243,11 +254,10 @@ int main()
 
 	proj = glm::perspective(glm::radians(90.0f), static_cast<float>(windowWidth) / static_cast<float>(windowHeight), 0.1f, 100.0f);
 
-	//model = glm::mat4(1.0f);
-	//model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-
-	view = glm::mat4(1.0f);
-	view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+	cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+	cameraDirection = glm::normalize(cameraPosition - cameraTarget);
+	cameraRight = glm::normalize(glm::cross(up, cameraDirection));
+	cameraUp = glm::cross(cameraDirection, cameraRight);
 	
 	// Load textures
 	textures[0] = TextureLoader::loadTexture(texturePath1, false);
@@ -281,6 +291,12 @@ int main()
 	LOG("Starting main loop.");
 	while (!glfwWindowShouldClose(window)) 
 	{
+		const float vel = 0.05f * deltaTime;
+		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) cameraPosition += vel * cameraFront;
+		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) cameraPosition -= vel * cameraFront;
+		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) cameraPosition += glm::normalize(glm::cross(cameraFront, up)) * vel;
+		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) cameraPosition -= glm::normalize(glm::cross(cameraFront, up)) * vel;
+		
 		keyboardHandler->processInput(); //processInput(window);
 		
 		// Measure time
@@ -329,11 +345,37 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	glViewport(0, 0, width, height);
 }
 
+void mouse_callback(GLFWwindow* window, double mouseX, double mouseY)
+{
+	if(firstMouse)
+	{
+		lastX = mouseX;
+		lastY = mouseY;
+		firstMouse = false;
+	}
+	
+	float xOffset = mouseX - lastX;
+	float yOffset = lastY - mouseY; // Coordinates on the y-axis range from bottom to top
+	lastX = mouseX;
+	lastY = mouseY;
+
+	const float sensitivity = 0.1f;
+	xOffset *= sensitivity;
+	yOffset *= sensitivity;
+
+	yaw += xOffset;
+	pitch = std::clamp<float>(pitch + yOffset, -180.f, 180.f);
+
+	glm::vec3 direction;
+	direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+	direction.y = sin(glm::radians(pitch));
+	direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+	cameraFront = glm::normalize(direction);
+}
+
 void bindKeys()
 {
-	keyboardHandler->bindKey(GLFW_KEY_T, &toggleWireframe);
-	keyboardHandler->bindKey(GLFW_KEY_A, &cameraLeft);
-	keyboardHandler->bindKey(GLFW_KEY_D, &cameraRight);
+	keyboardHandler->bindKey(GLFW_KEY_T, &toggleWireframe, nullptr, false);
 }
 
 void toggleWireframe()
@@ -350,16 +392,6 @@ void increaseAlpha()
 void decreaseAlpha()
 {
 	textureAlpha -= 0.1f;
-}
-
-void cameraLeft()
-{
-	cameraPosition.x += velocity;
-}
-
-void cameraRight()
-{
-	cameraPosition.x -= velocity;
 }
 
 /* OLD VAO & VBO CODE FOR REFERENCE
