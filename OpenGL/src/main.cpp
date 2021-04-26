@@ -16,6 +16,7 @@
 #include <iostream>
 #include <algorithm>
 #include <cmath>
+#include <vector>
 
 // My headers
 #include "Utility/Shader.h"
@@ -24,6 +25,8 @@
 #include "VertexArray.h"
 #include "VertexBuffer.h"
 #include "ElementBuffer.h"
+
+#include "KeyboardHandler.h"
 
 #include "Debug.h"
 
@@ -40,8 +43,15 @@ unsigned int* textures[2];
 float textureAlpha = 0.5f;
 
 Shader* shader = nullptr;
-glm::mat4 transform(1.0f);
-glm::mat4 transform2(1.0f);
+
+// Projection type
+glm::mat4 proj;
+
+// Model matrix
+glm::mat4 model;
+
+// View matrix
+glm::mat4 view;
 
 VertexBuffer* buffer;
 VertexArray* array;
@@ -51,8 +61,6 @@ ElementBuffer* element;
 bool tPressed = false;
 bool wPressed = false;
 bool sPressed = false;
-
-bool showWireFrame = false;
 
 // Vertex stuff
 /*
@@ -84,37 +92,122 @@ unsigned int indicies[] =
 	1, 2, 3 // Second triangle
 };
 
+float cube[] = {
+	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+	 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+	-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	 0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	 0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+};
+
+std::vector<glm::vec3> cubePositions =
+{
+	glm::vec3(0.0f,  0.0f,  0.0f),
+	glm::vec3(2.0f,  5.0f, -15.0f),
+	glm::vec3(-1.5f, -2.2f, -2.5f),
+	glm::vec3(-3.8f, -2.0f, -12.3f),
+	glm::vec3(2.4f, -0.4f, -3.5f),
+	glm::vec3(-1.7f,  3.0f, -7.5f),
+	glm::vec3(1.3f, -2.0f, -2.5f),
+	glm::vec3(1.5f,  2.0f, -2.5f),
+	glm::vec3(1.5f,  0.2f, -1.5f),
+	glm::vec3(-1.3f,  1.0f, -1.5f)
+};
+
+// Keyboard stuff
+KeyboardHandler* keyboardHandler;
+void bindKeys();
+
+bool showWireFrame = false;
+
+float velocity = 0.75f;
+glm::vec3 cameraPosition(0.0f, 0.0f, 0.0f);
+
+// Handlers
+void toggleWireframe();
+void increaseAlpha();
+void decreaseAlpha();
+void cameraLeft();
+void cameraRight();
+void cameraUp();
+void cameraDown();
+
+// For GLFW
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void processInput(GLFWwindow* window);
+//void processInput(GLFWwindow* window);
 
 void update(GLFWwindow* window)
 {
-	// Rotation around z axis
-	transform = glm::mat4(1.0f);
-	transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
-	transform = glm::rotate(transform, static_cast<float>(glfwGetTime()), glm::vec3(0.0f, 0.0f, 1.0f));
+	//model = glm::mat4(1.0f);
+	//model = glm::rotate(model, static_cast<float>(glfwGetTime()) * glm::radians(50.f), glm::vec3(0.5f, 1.0f, 0.0f));
 
-	transform2 = glm::mat4(1.0f);
-	transform2 = glm::translate(transform2, glm::vec3(-0.5f, 0.5f, 0.0f));
-	float scale = static_cast<float>(pow(sin(glfwGetTime()), 2) + 0.1f);
-	transform2 = glm::scale(transform2, glm::vec3(scale));
+	view = glm::translate(view, cameraPosition);
 }
 
 void render(GLFWwindow* window, const double deltaTime)
 {
 	glClearColor(.2f, .3f, .3f, 1.f);
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	array->bindTextures();
-	
+
 	shader->use();
-	shader->setFloat("alpha", textureAlpha);
-	shader->setMat4fv("transform", transform);
+	shader->setFloat("alpha", textureAlpha);	
+	
+	shader->setMat4fv("view", view);
+	shader->setMat4fv("projection", proj);
+	
+	int i = 0;
+	for (const auto& pos : cubePositions)
+	{
+		glm::mat4 m(1.0f);
+		m = glm::translate(m, pos);
 
-	array->render();
+		const float angle = 20.f * i;
+		m = glm::rotate(m, (glm::radians(angle) + 1), glm::vec3(1.0f, 1.0f, 1.0f));
+		m = glm::rotate(m, static_cast<float>(glfwGetTime()), glm::vec3(1.0f, 1.0f, 1.0f));
+		
+		shader->setMat4fv("model", m);
 
-	shader->setMat4fv("transform", transform2);
-	array->render();
+		array->render();
+		++i;
+	}
 	
 	glfwSwapBuffers(window);
 }
@@ -126,8 +219,8 @@ int main()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	GLFWwindow* window = glfwCreateWindow(windowWidth, windowHeight, "OpenGL", NULL, NULL);
-	if (window == NULL) 
+	GLFWwindow* window = glfwCreateWindow(windowWidth, windowHeight, "OpenGL", nullptr, nullptr);
+	if (window == nullptr) 
 	{
 		std::cerr << "Failed to create GLFW window!" << std::endl;
 		glfwTerminate();
@@ -143,8 +236,19 @@ int main()
 		return EXIT_FAILURE;
 	}
 
+	keyboardHandler = new KeyboardHandler(window);
+	bindKeys();
+	
 	glViewport(0, 0, windowWidth, windowHeight);
 
+	proj = glm::perspective(glm::radians(90.0f), static_cast<float>(windowWidth) / static_cast<float>(windowHeight), 0.1f, 100.0f);
+
+	//model = glm::mat4(1.0f);
+	//model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+
+	view = glm::mat4(1.0f);
+	view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+	
 	// Load textures
 	textures[0] = TextureLoader::loadTexture(texturePath1, false);
 	textures[1] = TextureLoader::loadTexture(texturePath2, true);
@@ -155,12 +259,14 @@ int main()
 	shader->setInt("texture1", 1);
 	
 	array = new VertexArray();
-	buffer = new VertexBuffer(rectangle, sizeof(rectangle));
-	element = new ElementBuffer(indicies, sizeof(indicies));
+	buffer = new VertexBuffer(cube, sizeof(cube));
+	//element = new ElementBuffer(indicies, sizeof(indicies));
 	
 	array->setAttributes({ 3, 2 });
 	array->addTexture(textures[0], GL_TEXTURE0);
 	array->addTexture(textures[1], GL_TEXTURE1);
+
+	glEnable(GL_DEPTH_TEST);
 	
 	const int fps = 60; 
 	const double targetTime = 1.0 / fps;
@@ -175,7 +281,7 @@ int main()
 	LOG("Starting main loop.");
 	while (!glfwWindowShouldClose(window)) 
 	{
-		processInput(window);
+		keyboardHandler->processInput(); //processInput(window);
 		
 		// Measure time
 		currentTime = glfwGetTime();
@@ -207,9 +313,11 @@ int main()
 	delete shader;
 	TextureLoader::unloadTexture(textures[0]);
 
-	delete element;
+	//delete element;
 	delete buffer;
 	delete array;
+
+	delete keyboardHandler;
 	
 	glfwTerminate();
 
@@ -221,48 +329,37 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	glViewport(0, 0, width, height);
 }
 
-void processInput(GLFWwindow* window) 
+void bindKeys()
 {
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-	{
-		glfwSetWindowShouldClose(window, true);
-	}
+	keyboardHandler->bindKey(GLFW_KEY_T, &toggleWireframe);
+	keyboardHandler->bindKey(GLFW_KEY_A, &cameraLeft);
+	keyboardHandler->bindKey(GLFW_KEY_D, &cameraRight);
+}
 
-	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS && !tPressed)
-	{
-		tPressed = true;
-		showWireFrame = !showWireFrame;
-		showWireFrame ? glPolygonMode(GL_FRONT_AND_BACK, GL_LINE) : glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	}
+void toggleWireframe()
+{
+	showWireFrame = !showWireFrame;
+	showWireFrame ? glPolygonMode(GL_FRONT_AND_BACK, GL_LINE) : glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+}
 
-	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_RELEASE && tPressed)
-	{
-		tPressed = false;
-	}
+void increaseAlpha()
+{
+	textureAlpha += 0.1f;
+}
 
-	if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS && !wPressed)
-	{
-		wPressed = true;
-		textureAlpha = textureAlpha + 0.1f; // std::min<float>(textureAlpha + 0.1f, 1.0f);
-		LOG(textureAlpha);
-	}
+void decreaseAlpha()
+{
+	textureAlpha -= 0.1f;
+}
 
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_RELEASE && wPressed)
-	{
-		wPressed = false;
-	}
+void cameraLeft()
+{
+	cameraPosition.x += velocity;
+}
 
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS && !sPressed)
-	{
-		sPressed = true;
-		textureAlpha = textureAlpha - 0.1f; // std::max<float>(textureAlpha - 0.1f, 0.f);
-		LOG(textureAlpha);
-	}
-
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_RELEASE && sPressed)
-	{
-		sPressed = false;
-	}
+void cameraRight()
+{
+	cameraPosition.x -= velocity;
 }
 
 /* OLD VAO & VBO CODE FOR REFERENCE

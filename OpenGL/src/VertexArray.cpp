@@ -70,7 +70,8 @@ void VertexArray::render()
 	this->bindTextures();
 
 	this->bind();
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+	//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+	glDrawArrays(GL_TRIANGLES, 0, 36);
 	this->unbind();
 }
 
