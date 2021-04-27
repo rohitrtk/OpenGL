@@ -28,6 +28,8 @@
 
 #include "KeyboardHandler.h"
 
+#include "Render/Camera.h"
+
 #include "Debug.h"
 
 constexpr int windowWidth = 800;
@@ -56,11 +58,6 @@ glm::mat4 view;
 VertexBuffer* buffer;
 VertexArray* array;
 ElementBuffer* element;
-
-// Keyboard stuff
-bool tPressed = false;
-bool wPressed = false;
-bool sPressed = false;
 
 // Vertex stuff
 /*
@@ -156,14 +153,7 @@ void bindKeys();
 
 bool showWireFrame = false;
 
-// Camera stuff
-const glm::vec3 up(0.0f, 1.0f, 0.0f);
-glm::vec3 cameraFront(0.0f, 0.0f, -1.0f);
-glm::vec3 cameraPosition(0.0f, 0.0f, 3.0f);
-glm::vec3 cameraTarget;
-glm::vec3 cameraDirection;
-glm::vec3 cameraRight;
-glm::vec3 cameraUp;
+Camera camera(glm::vec3(0.f, 0.f, 4.f));
 
 float yaw = 0;
 float pitch = 0;
@@ -183,12 +173,13 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double mouseX, double mouseY);
 //void processInput(GLFWwindow* window);
 
-void update(GLFWwindow* window)
+void update(double deltaTime)
 {
-	view = glm::lookAt(cameraPosition, cameraPosition + cameraFront, up);
+	camera.update(deltaTime);
+	view = camera.getViewMatrix();
 }
 
-void render(GLFWwindow* window, const double deltaTime)
+void render(GLFWwindow* window)
 {
 	glClearColor(.2f, .3f, .3f, 1.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -253,11 +244,6 @@ int main()
 	glViewport(0, 0, windowWidth, windowHeight);
 
 	proj = glm::perspective(glm::radians(90.0f), static_cast<float>(windowWidth) / static_cast<float>(windowHeight), 0.1f, 100.0f);
-
-	cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
-	cameraDirection = glm::normalize(cameraPosition - cameraTarget);
-	cameraRight = glm::normalize(glm::cross(up, cameraDirection));
-	cameraUp = glm::cross(cameraDirection, cameraRight);
 	
 	// Load textures
 	textures[0] = TextureLoader::loadTexture(texturePath1, false);
@@ -291,11 +277,10 @@ int main()
 	LOG("Starting main loop.");
 	while (!glfwWindowShouldClose(window)) 
 	{
-		const float vel = 0.05f * deltaTime;
-		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) cameraPosition += vel * cameraFront;
-		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) cameraPosition -= vel * cameraFront;
-		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) cameraPosition += glm::normalize(glm::cross(cameraFront, up)) * vel;
-		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) cameraPosition -= glm::normalize(glm::cross(cameraFront, up)) * vel;
+		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) camera.moveForward();
+		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) camera.moveBackward();
+		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) camera.moveRight();
+		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) camera.moveLeft();
 		
 		keyboardHandler->processInput(); //processInput(window);
 		
@@ -306,13 +291,13 @@ int main()
 
 		// Update at 60fps
 		while (deltaTime >= 1.0) {
-			update(window);
+			update(deltaTime);
 			updates++;
 			deltaTime--;
 		}
 
 		// Render as many frames as possible
-		render(window, deltaTime);
+		render(window);
 		frames++;
 
 		// Reset update and frame count after 1 second
@@ -347,30 +332,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 
 void mouse_callback(GLFWwindow* window, double mouseX, double mouseY)
 {
-	if(firstMouse)
-	{
-		lastX = mouseX;
-		lastY = mouseY;
-		firstMouse = false;
-	}
-	
-	float xOffset = mouseX - lastX;
-	float yOffset = lastY - mouseY; // Coordinates on the y-axis range from bottom to top
-	lastX = mouseX;
-	lastY = mouseY;
-
-	const float sensitivity = 0.1f;
-	xOffset *= sensitivity;
-	yOffset *= sensitivity;
-
-	yaw += xOffset;
-	pitch = std::clamp<float>(pitch + yOffset, -180.f, 180.f);
-
-	glm::vec3 direction;
-	direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-	direction.y = sin(glm::radians(pitch));
-	direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-	cameraFront = glm::normalize(direction);
+	camera.mouseCallback(window, mouseX, mouseY);
 }
 
 void bindKeys()

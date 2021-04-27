@@ -172,6 +172,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Render\Camera.cpp" />
     <ClCompile Include="src\KeyboardHandler.cpp" />
     <ClCompile Include="src\ElementBuffer.cpp" />
     <ClCompile Include="src\Utility\glad.c" />
@@ -182,6 +183,7 @@
     <ClCompile Include="src\VertexBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Render\Camera.h" />
     <ClInclude Include="src\KeyboardHandler.h" />
     <ClInclude Include="src\ElementBuffer.h" />
     <ClInclude Include="src\Debug.h" />
