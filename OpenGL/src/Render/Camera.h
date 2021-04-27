@@ -5,6 +5,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+class KeyboardHandler;
+
 class Camera
 {
 public:
@@ -14,7 +16,7 @@ public:
 	Camera();
 	Camera(glm::vec3 position);
 	Camera(glm::vec3 position, glm::vec3 direction);
-
+	
 	void update(double deltaTime);
 
 	void setPositionVector(glm::vec3 position) { this->position = position; }
@@ -25,8 +27,8 @@ public:
 	
 	glm::mat4 getViewMatrix() const;
 
-	void mouseCallback(GLFWwindow* window, double mx, double my);
-
+	void handleMouseCallback(GLFWwindow* window, double mx, double my);
+	
 	float moveSpeed = 0.05f;
 	
 	void moveForward();
@@ -48,7 +50,6 @@ private:
 	float roll;
 
 	// Temporarily here until I make a mouse handler
-	bool useMouseRotation;
 	bool mouseUsed;
 	double prevMx;
 	double prevMy;
@@ -57,6 +58,5 @@ private:
 	void updateVectors();
 
 	float velocity;
-	double deltaTime;
 };
 

@@ -2,6 +2,8 @@
 
 #include <algorithm>
 
+#include "../Input/KeyboardHandler.h"
+
 Camera::Camera()
 {
 	Camera(glm::vec3(0.0f, 0.0f, 0.0f));
@@ -18,7 +20,6 @@ Camera::Camera(glm::vec3 position, glm::vec3 front) :
 	pitch(0),
 	yaw(0),
 	roll(0),
-	useMouseRotation(true),
 	mouseUsed(false)
 {
 	this->updateVectors();
@@ -29,7 +30,7 @@ glm::mat4 Camera::getViewMatrix() const
 	return glm::lookAt(this->position, this->position + this->front, Camera::WORLD_UP);
 }
 
-void Camera::mouseCallback(GLFWwindow* window, double mx, double my)
+void Camera::handleMouseCallback(GLFWwindow* window, double mx, double my)
 {	
 	if(!this->mouseUsed)
 	{

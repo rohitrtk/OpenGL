@@ -14,7 +14,6 @@
 
 // STL libraries
 #include <iostream>
-#include <algorithm>
 #include <cmath>
 #include <vector>
 
@@ -26,7 +25,7 @@
 #include "VertexBuffer.h"
 #include "ElementBuffer.h"
 
-#include "KeyboardHandler.h"
+#include "Input/KeyboardHandler.h"
 
 #include "Render/Camera.h"
 
@@ -149,9 +148,9 @@ std::vector<glm::vec3> cubePositions =
 
 // Keyboard stuff
 KeyboardHandler* keyboardHandler;
-void bindKeys();
 
 bool showWireFrame = false;
+void toggleWireframe();
 
 Camera camera(glm::vec3(0.f, 0.f, 4.f));
 
@@ -159,19 +158,14 @@ float yaw = 0;
 float pitch = 0;
 bool firstMouse = true;
 
-// Handlers
-void toggleWireframe();
-void increaseAlpha();
-void decreaseAlpha();
-
 // Mouse stuff
 float lastX = 400;
 float lastY = 300;
 
 // For GLFW
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void mouse_callback(GLFWwindow* window, double mouseX, double mouseY);
-//void processInput(GLFWwindow* window);
 
 void update(double deltaTime)
 {
@@ -230,6 +224,7 @@ int main()
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetKeyCallback(window, key_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
 	
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) 
@@ -238,11 +233,16 @@ int main()
 		return EXIT_FAILURE;
 	}
 
-	keyboardHandler = new KeyboardHandler(window);
-	bindKeys();
-	
 	glViewport(0, 0, windowWidth, windowHeight);
 
+	// Create keyboard handler and bind keys
+	keyboardHandler = new KeyboardHandler(window);
+	keyboardHandler->bindKey(GLFW_KEY_W, false, std::bind(&Camera::moveForward, &camera), nullptr);
+	keyboardHandler->bindKey(GLFW_KEY_S, false, std::bind(&Camera::moveBackward, &camera), nullptr);
+	keyboardHandler->bindKey(GLFW_KEY_D, false, std::bind(&Camera::moveRight, &camera), nullptr);
+	keyboardHandler->bindKey(GLFW_KEY_A, false, std::bind(&Camera::moveLeft, &camera), nullptr);
+	keyboardHandler->bindKey(GLFW_KEY_T, true, toggleWireframe, nullptr);
+	
 	proj = glm::perspective(glm::radians(90.0f), static_cast<float>(windowWidth) / static_cast<float>(windowHeight), 0.1f, 100.0f);
 	
 	// Load textures
@@ -277,13 +277,8 @@ int main()
 	LOG("Starting main loop.");
 	while (!glfwWindowShouldClose(window)) 
 	{
-		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) camera.moveForward();
-		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) camera.moveBackward();
-		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) camera.moveRight();
-		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) camera.moveLeft();
-		
-		keyboardHandler->processInput(); //processInput(window);
-		
+		keyboardHandler->processInput();
+				
 		// Measure time
 		currentTime = glfwGetTime();
 		deltaTime += (currentTime - lastTime) / targetTime;
@@ -330,14 +325,17 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	glViewport(0, 0, width, height);
 }
 
-void mouse_callback(GLFWwindow* window, double mouseX, double mouseY)
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-	camera.mouseCallback(window, mouseX, mouseY);
+	if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+	{
+		glfwSetWindowShouldClose(window, true);
+	}
 }
 
-void bindKeys()
+void mouse_callback(GLFWwindow* window, double mouseX, double mouseY)
 {
-	keyboardHandler->bindKey(GLFW_KEY_T, &toggleWireframe, nullptr, false);
+	camera.handleMouseCallback(window, mouseX, mouseY);
 }
 
 void toggleWireframe()
@@ -345,32 +343,3 @@ void toggleWireframe()
 	showWireFrame = !showWireFrame;
 	showWireFrame ? glPolygonMode(GL_FRONT_AND_BACK, GL_LINE) : glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
-
-void increaseAlpha()
-{
-	textureAlpha += 0.1f;
-}
-
-void decreaseAlpha()
-{
-	textureAlpha -= 0.1f;
-}
-
-/* OLD VAO & VBO CODE FOR REFERENCE
-	glGenVertexArrays(1, &VAO2);
-	glGenBuffers(1, &VBO2);
-
-	glBindVertexArray(VAO2);
-
-	glBindBuffer(GL_ARRAY_BUFFER, VBO2);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(verticiesTriangle2), verticiesTriangle2, GL_STATIC_DRAW);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
-
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-	glEnableVertexAttribArray(2);
-*/

@@ -173,7 +173,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Render\Camera.cpp" />
-    <ClCompile Include="src\KeyboardHandler.cpp" />
+    <ClCompile Include="src\Input\KeyboardHandler.cpp" />
     <ClCompile Include="src\ElementBuffer.cpp" />
     <ClCompile Include="src\Utility\glad.c" />
     <ClCompile Include="src\main.cpp" />
@@ -184,7 +184,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Render\Camera.h" />
-    <ClInclude Include="src\KeyboardHandler.h" />
+    <ClInclude Include="src\Input\KeyboardHandler.h" />
     <ClInclude Include="src\ElementBuffer.h" />
     <ClInclude Include="src\Debug.h" />
     <ClInclude Include="src\Utility\Shader.h" />
