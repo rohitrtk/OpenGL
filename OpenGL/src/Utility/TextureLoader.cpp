@@ -1,7 +1,8 @@
 #include "TextureLoader.h"
 
 #include <glad/glad.h>
-#include "stb_image.h"
+
+#include "../Utility/stb_image.h"
 
 #include <iostream>
 
@@ -46,9 +47,5 @@ unsigned int* TextureLoader::loadTexture(const char* path, bool transparent)
 void TextureLoader::unloadTexture(unsigned int* texture)
 {
 	glDeleteTextures(1, texture);
-
-	if (texture != nullptr)
-	{
-		delete texture;
-	}
+	delete texture;
 }

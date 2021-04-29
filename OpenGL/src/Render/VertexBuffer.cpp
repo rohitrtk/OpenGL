@@ -2,8 +2,8 @@
 
 #include <glad/glad.h>
 
-VertexBuffer::VertexBuffer(const void* data, unsigned int size)
-	: ID(0)
+VertexBuffer::VertexBuffer(const void* data, unsigned int size)	:
+	ID(0)
 {
 	glGenBuffers(1, &(this->ID));
 	glBindBuffer(GL_ARRAY_BUFFER, this->ID);

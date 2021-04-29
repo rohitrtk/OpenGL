@@ -8,6 +8,8 @@
 #include <string>
 #include <exception>
 
+#include <glm/gtc/type_ptr.hpp>
+
 Shader::Shader(const char* vertexPath, const char* fragmentPath) 
 {
 	std::string vertexCode, fragmentCode;

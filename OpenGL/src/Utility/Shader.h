@@ -1,11 +1,10 @@
 #pragma once
 
 #include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 #include <string>
 
-#define INFO_LOG_SIZE 512
+constexpr int INFO_LOG_SIZE = 512;
 
 class Shader
 {

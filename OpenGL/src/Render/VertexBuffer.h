@@ -9,8 +9,8 @@ public:
 	void bind() const;
 	void unbind() const;
 
-	inline unsigned int getID() const { return this->ID; }
-	inline void setID(unsigned int ID) { this->ID = ID; }
+	unsigned int getID() const { return this->ID; }
+	void setID(unsigned int ID) { this->ID = ID; }
 
 private:
 	unsigned int ID;

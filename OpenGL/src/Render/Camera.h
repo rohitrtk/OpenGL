@@ -1,16 +1,13 @@
 #pragma once
 
-#include <GLFW/glfw3.h>
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-class KeyboardHandler;
+#include "../Input/Mouse.h"
 
 class Camera
 {
 public:
-
 	inline static const glm::vec3 WORLD_UP = glm::vec3(0.0f, 1.0f, 0.0f);
 	
 	Camera();
@@ -27,7 +24,7 @@ public:
 	
 	glm::mat4 getViewMatrix() const;
 
-	void handleMouseCallback(GLFWwindow* window, double mx, double my);
+	void handleMouse(Mouse& mouse);
 	
 	float moveSpeed = 0.05f;
 	

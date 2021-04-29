@@ -2,16 +2,12 @@
 
 #include <algorithm>
 
-#include "../Input/KeyboardHandler.h"
-
-Camera::Camera()
-{
-	Camera(glm::vec3(0.0f, 0.0f, 0.0f));
+Camera::Camera() : Camera(glm::vec3(0.0f, 0.0f, 0.0f))
+{	
 }
 
-Camera::Camera(glm::vec3 position)
+Camera::Camera(glm::vec3 position) : Camera(position, glm::vec3(0.0f, 0.0f, -1.0f))
 {
-	Camera(position, glm::vec3(0.0f, 0.0f, -1.0f));
 }
 
 Camera::Camera(glm::vec3 position, glm::vec3 front) :
@@ -30,19 +26,19 @@ glm::mat4 Camera::getViewMatrix() const
 	return glm::lookAt(this->position, this->position + this->front, Camera::WORLD_UP);
 }
 
-void Camera::handleMouseCallback(GLFWwindow* window, double mx, double my)
-{	
-	if(!this->mouseUsed)
+void Camera::handleMouse(Mouse& mouse)
+{
+	if(!mouse.firstUse)
 	{
-		this->prevMx = mx;
-		this->prevMy = my;
-		this->mouseUsed = true;
+		mouse.px = mouse.x;
+		mouse.py = mouse.y;
+		mouse.firstUse = true;
 	}
 
-	float xOffset = mx - this->prevMx;
-	float yOffset = this->prevMy - my;
-	this->prevMx = mx;
-	this->prevMy = my;
+	float xOffset = mouse.x - mouse.px;
+	float yOffset = mouse.py - mouse.y;
+	mouse.px = mouse.x;
+	mouse.py = mouse.y;
 
 	xOffset *= this->sensitivity;
 	yOffset *= this->sensitivity;
