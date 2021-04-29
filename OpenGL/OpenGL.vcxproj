@@ -172,26 +172,29 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Application.cpp" />
     <ClCompile Include="src\Render\Camera.cpp" />
     <ClCompile Include="src\Input\KeyboardHandler.cpp" />
-    <ClCompile Include="src\ElementBuffer.cpp" />
+    <ClCompile Include="src\Render\ElementBuffer.cpp" />
     <ClCompile Include="src\Utility\glad.c" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Utility\Shader.cpp" />
     <ClCompile Include="src\Utility\TextureLoader.cpp" />
-    <ClCompile Include="src\VertexArray.cpp" />
-    <ClCompile Include="src\VertexBuffer.cpp" />
+    <ClCompile Include="src\Render\VertexArray.cpp" />
+    <ClCompile Include="src\Render\VertexBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Application.h" />
+    <ClInclude Include="src\Input\Mouse.h" />
     <ClInclude Include="src\Render\Camera.h" />
     <ClInclude Include="src\Input\KeyboardHandler.h" />
-    <ClInclude Include="src\ElementBuffer.h" />
+    <ClInclude Include="src\Render\ElementBuffer.h" />
     <ClInclude Include="src\Debug.h" />
     <ClInclude Include="src\Utility\Shader.h" />
     <ClInclude Include="src\Utility\stb_image.h" />
     <ClInclude Include="src\Utility\TextureLoader.h" />
-    <ClInclude Include="src\VertexArray.h" />
-    <ClInclude Include="src\VertexBuffer.h" />
+    <ClInclude Include="src\Render\VertexArray.h" />
+    <ClInclude Include="src\Render\VertexBuffer.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\fragmentShader.glsl" />

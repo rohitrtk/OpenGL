@@ -21,9 +21,9 @@
 #include "Utility/Shader.h"
 #include "Utility/TextureLoader.h"
 
-#include "VertexArray.h"
-#include "VertexBuffer.h"
-#include "ElementBuffer.h"
+#include "Render/VertexArray.h"
+#include "Render/VertexBuffer.h"
+#include "Render/ElementBuffer.h"
 
 #include "Input/KeyboardHandler.h"
 
@@ -154,9 +154,12 @@ void toggleWireframe();
 
 Camera camera(glm::vec3(0.f, 0.f, 4.f));
 
-float yaw = 0;
-float pitch = 0;
-bool firstMouse = true;
+//float yaw = 0;
+//float pitch = 0;
+//bool firstMouse = true;
+
+double xPos;
+double yPos;
 
 // Mouse stuff
 float lastX = 400;
@@ -181,7 +184,6 @@ void render(GLFWwindow* window)
 	array->bindTextures();
 
 	shader->use();
-	shader->setFloat("alpha", textureAlpha);	
 	
 	shader->setMat4fv("view", view);
 	shader->setMat4fv("projection", proj);
@@ -225,7 +227,7 @@ int main()
 	
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSetKeyCallback(window, key_callback);
-	glfwSetCursorPosCallback(window, mouse_callback);
+	//glfwSetCursorPosCallback(window, mouse_callback);
 	
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) 
 	{
@@ -251,8 +253,7 @@ int main()
 
 	// Create shaders
 	shader = new Shader(vertexShaderPath, fragmentShaderPath);
-	shader->setInt("texture0", 0);
-	shader->setInt("texture1", 1);
+	shader->setInt("shaderTexture", 0);
 	
 	array = new VertexArray();
 	buffer = new VertexBuffer(cube, sizeof(cube));
@@ -278,6 +279,7 @@ int main()
 	while (!glfwWindowShouldClose(window)) 
 	{
 		keyboardHandler->processInput();
+			glfwGetCursorPos(window, &xPos, &yPos);
 				
 		// Measure time
 		currentTime = glfwGetTime();
@@ -286,6 +288,8 @@ int main()
 
 		// Update at 60fps
 		while (deltaTime >= 1.0) {
+			camera.handleMouseCallback(window, xPos, yPos);
+
 			update(deltaTime);
 			updates++;
 			deltaTime--;
@@ -335,7 +339,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 void mouse_callback(GLFWwindow* window, double mouseX, double mouseY)
 {
-	camera.handleMouseCallback(window, mouseX, mouseY);
+	//camera.handleMouseCallback(window, mouseX, mouseY);
 }
 
 void toggleWireframe()
